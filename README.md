@@ -1,5 +1,6 @@
 # Final Project for Codes and Ciphers: MATH-367
 Mini-DES and DES project code for MATH-367
+
 Created by: Andrew Chabot and John Shull
 
 ## Running the project
