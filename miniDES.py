@@ -62,7 +62,7 @@ def mDESRun(pB, rounds, fullKey):
     leftBlock = pB[:4]
     rightBlock = pB[4:]
 
-    # rounds where the round key is rotated twice instead of jsut once
+    # rounds where the round key is rotated twice instead of just once
     twoRoundList = [3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15]
     leftKey = list(fullKey[:4])
     rightKey = list(fullKey[4:])
@@ -85,20 +85,21 @@ def mDESRun(pB, rounds, fullKey):
 
     return leftBlock + rightBlock
 
-# helpful xor function for two blocks of the same size
+
+# helper xor function for two blocks of the same size
 def xor(b1, b2):
     outB = []
     for i in range(0, len(b1)):
-        if(int(b1[i]) == int(b2[i])):
+        if int(b1[i]) == int(b2[i]):
             outB.append(0)
         else:
             outB.append(1)
     return outB
 
-# fesitel fucntion that permutes and does S-box work
-def feistel(currBlock, rKey):
 
-    #exapnsions function
+# fesitel function that permutes and does S-box work
+def feistel(currBlock, rKey):
+    #expansion function
     currBlock = [currBlock[3], currBlock[0], currBlock[1], currBlock[2], currBlock[3], currBlock[1]]
     currBlock = xor(currBlock, rKey)
     sBox = [[14, 4 , 13, 1, 2 ,15, 11, 8 , 3 , 10, 6 , 12, 5 , 9 , 0, 7],
@@ -110,7 +111,8 @@ def feistel(currBlock, rKey):
     sBoxBlock = list(str(dec2bin(sBox[column][row])))
     return [sBoxBlock[1], sBoxBlock[2], sBoxBlock[3], sBoxBlock[0]]
 
-# Binary to decimal conversion
+
+# Binary to decimal conversion, taken from tutorialsPoint
 def bin2dec(binary):
     binary1 = binary
     decimal, i, n = 0, 0, 0
@@ -122,7 +124,7 @@ def bin2dec(binary):
     return decimal
 
 
-# Decimal to binary conversion
+# Decimal to binary conversion, taken from tutorialsPoint
 def dec2bin(num):
     res = bin(num).replace("0b", "")
     if (len(res) % 4 != 0):
@@ -133,28 +135,62 @@ def dec2bin(num):
             res = '0' + res
     return res
 
-def crackMiniDES():
-    plainT, cipherT = runMiniDES("plain.txt")
 
-    print("Plaintext: " + plainT)
-    print("Ciphertext to find: " + cipherT)
+def crackMiniDES(experiment=False):
+    if experiment:
+        # run 100 times and generate statistical output
+        cracktimes = []
+        for i in range(0, 100):
+            plainT, cipherT = runMiniDES("plain.txt")
+            print("Plaintext: " + plainT)
+            print("Ciphertext to find: " + cipherT)
+            # search for a key
+            start = time.time()
+            for potentialKey in range(0, 256):
+                potP, potC = runMiniDES("plain.txt", potentialKey)
+                if potC == cipherT:
+                    print("Key found: " + format(potentialKey, '08b'))
+                    end = time.time()
+                    print("Crack completed in " + str(end - start) + " seconds")
+                    cracktimes.append(end-start)
+                    break
+        print("All Times: " + str(cracktimes))
+        print("Max Time: " + str(max(cracktimes)))
+        print("Min Time: " + str(min(cracktimes)))
+        cracktimes.sort()
+        print("Median Time: " + str(cracktimes[50]))
+        times = 0
+        for tme in cracktimes:
+            times += tme
+        print("Average Time: " + str(times/100.0))
+    else:
+        # Just a single crack run here
+        plainT, cipherT = runMiniDES("plain.txt")
+        print("Plaintext: " + plainT)
+        print("Ciphertext to find: " + cipherT)
 
-    #search for a key
-    start = time.time()
-    for potentialKey in range(0, 256):
-        potP, potC = runMiniDES("plain.txt", potentialKey)
-        if potC == cipherT:
-            print("Key found: " + format(potentialKey, '08b'))
-            end = time.time()
-            print("Crack completed in " + str(end - start) + " seconds")
-            break
+        # search for a key
+        start = time.time()
+        for potentialKey in range(0, 256):
+            potP, potC = runMiniDES("plain.txt", potentialKey)
+            if potC == cipherT:
+                print("Key found: " + format(potentialKey, '08b'))
+                end = time.time()
+                print("Crack completed in " + str(end - start) + " seconds")
+                break
 
 def runMiniDESVerbose():
+    # normal mini-DES run, no cracking required!
+    # use the plain.txt file or change this if you want to run with a different file
     runMiniDES("plain.txt", verbose=True)
 
-choice = input("Type c for crack program or e for verbose mini DES encryption: ")
+
+# main input from user to decide what part of the program to run
+choice = input("Type c for crack program or v for verbose mini DES encryption: ")
 if choice.lower() == 'c':
     crackMiniDES()
+elif choice.lower() == 'ce':
+    crackMiniDES(True)
 else:
     runMiniDESVerbose()
 
